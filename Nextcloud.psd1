@@ -73,7 +73,10 @@ This module allows you to manage your Nextcloud instance from PowerShell.
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport = @(
         "Connect-NextcloudServer",
-        "Get-NextcloudUser"
+        "Get-NextcloudUser",
+        "Set-NextcloudUser",
+        "Add-NextcloudUser",
+        "Remove-NextcloudUser"
     )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
