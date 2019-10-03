@@ -1,4 +1,5 @@
 function Connect-NextcloudServer {
+    [cmdletbinding()]
     param(
         $Username,
         $Password,
@@ -35,11 +36,18 @@ function Connect-NextcloudServer {
     
     if($r.ocs.meta.status -eq 'ok'){
         Write-host "Connected to Nextcloud Server: $Server"
-        $Global:NextcloudAuthHeaders
-        $Global:NextcloudBaseURL
+        $Global:NextcloudAuthHeaders = $Headers
+        $Global:NextcloudBaseURL = $NextcloudBaseURL
     }
     else{
         Write-Host "Failed to Authenticate to Nextcloud Server: $Server"
     }
 }
 
+function Get-NextcloudUser {
+    [cmdletbinding()]
+
+    $r = Invoke-RestMethod -Method Get -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users?search=&format=json"
+    $rf = $r.ocs.data.users |Select-Object @{l='Users';e={$_}}
+    return $rf
+}
