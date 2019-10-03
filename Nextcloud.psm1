@@ -46,8 +46,23 @@ function Connect-NextcloudServer {
 
 function Get-NextcloudUser {
     [cmdletbinding()]
+    param(
+        [string]$Name 
+    )
 
     $r = Invoke-RestMethod -Method Get -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users?search=&format=json"
     $rf = $r.ocs.data.users |Select-Object @{l='Users';e={$_}}
-    return $rf
+    
+    if($Name -and ($rf.Users|Where-Object {$_ -eq $Name})){
+        $r2 = Invoke-RestMethod -Method Get -Headers $Global:NextcloudAuthHeaders  -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$Name"
+        return $r2.ocs.data 
+        
+    }
+    else{
+        $r2 = $rf.Users |ForEach-Object{
+            Invoke-RestMethod -Method Get -Headers $Global:NextcloudAuthHeaders  -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$_"
+        }
+        
+        return $r2.ocs.data
+    }
 }
