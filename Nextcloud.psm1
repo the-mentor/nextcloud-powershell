@@ -105,7 +105,7 @@ function Set-NextcloudUser {
             key = 'email'
             value = $Email
         }
-        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/test7" -Body $requestBody -ContentType application/x-www-form-urlencoded -verbose
+        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID" -Body $requestBody -ContentType application/x-www-form-urlencoded
     }
 
     if($Password){
@@ -113,7 +113,7 @@ function Set-NextcloudUser {
             key = 'password'
             value = $Password
         }
-        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/test7" -Body $requestBody -ContentType application/x-www-form-urlencoded -verbose
+        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID" -Body $requestBody -ContentType application/x-www-form-urlencoded
     }
 
     if($DisplayName){
@@ -121,7 +121,7 @@ function Set-NextcloudUser {
             key = 'displayname'
             value = $DisplayName
         }
-        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/test7" -Body $requestBody -ContentType application/x-www-form-urlencoded -verbose
+        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID" -Body $requestBody -ContentType application/x-www-form-urlencoded
     }
 
     if($Quota){
@@ -129,7 +129,7 @@ function Set-NextcloudUser {
             key = 'quota'
             value = $Quota
         }
-        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/test7" -Body $requestBody -ContentType application/x-www-form-urlencoded -verbose
+        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID" -Body $requestBody -ContentType application/x-www-form-urlencoded
     }
 }
 
