@@ -1,13 +1,60 @@
+function Invoke-NextcloudApi {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [String]$Api,
+
+        [ValidateSet('Get', 'Post', 'Put', 'Delete')]
+        [String]$Method,
+
+        [hashtable]$Body,
+        [Switch]$Json
+    )
+
+    if ($Json) {
+        if ($Body) {
+            $Body['format'] = 'json'
+        }
+        else {
+            $Body = @{ format = 'json' }
+        }
+    }
+
+    $Params = @{ }
+    if ($Body) {
+        $Params['Body'] = $Body
+    }
+    if ($Method) {
+        $Params['Method'] = $Method
+    }
+    if ($Method -in 'Post', 'Put') {
+        $Params['ContentType'] = 'application/x-www-form-urlencoded'
+    }
+
+    $r = Invoke-RestMethod -Headers $Script:NextcloudAuthHeaders  -Uri "$Script:NextcloudBaseURL/$Api" @Params
+    if ($r.ocs.meta.status -ne 'ok') {
+        $PSCmdlet.ThrowTerminatingError(
+            [Management.Automation.ErrorRecord]::new(
+                [ArgumentException]::new(('Command failed, status: "{0}", code: "{1}", message: "{2}".' -f $r.ocs.meta.status, $r.ocs.meta.statuscode, $r.ocs.meta.message)),
+                'Status not "ok"',
+                [Management.Automation.ErrorCategory]::InvalidResult,
+                $r
+            )
+        )
+    }
+    $r.ocs.data
+}
+
 function Connect-NextcloudServer {
     [CmdletBinding()]
     param(
-        $Username,
-        $Password,
-        $Server,
+        [Parameter(Mandatory)]
+        [PSCredential]$Credential,
+        [string]$Server,
         [switch]$NoSSL
     )
 
-    $creds = "$($Username):$($Password)"
+    $creds = "{0}:{1}" -f $Credential.UserName, $Credential.GetNetworkCredential().Password
     $encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($creds))
     $basicAuthValue = "Basic $encodedCreds"
     $Headers = @{
@@ -36,8 +83,8 @@ function Connect-NextcloudServer {
 
     if ($r.ocs.meta.status -eq 'ok') {
         Write-Host "Connected to Nextcloud Server: $Server"
-        $Global:NextcloudAuthHeaders = $Headers
-        $Global:NextcloudBaseURL = $NextcloudBaseURL
+        $Script:NextcloudAuthHeaders = $Headers
+        $Script:NextcloudBaseURL = $NextcloudBaseURL
     }
     else {
         Write-Host "Failed to Authenticate to Nextcloud Server: $Server"
@@ -47,24 +94,24 @@ function Connect-NextcloudServer {
 function Get-NextcloudUser {
     [CmdletBinding()]
     param(
-        [string]$Name
+        [string]$UserID
     )
 
-    $r = Invoke-RestMethod -Method Get -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users?search=&format=json"
-    $rf = $r.ocs.data.users | Select-Object @{l = 'Users'; e = { $_ } }
+    $r = Invoke-NextcloudApi -Api "ocs/v1.php/cloud/users" -Json
+    $rf = $r.users | Select-Object @{l = 'Users'; e = { $_ } }
 
-    if ($Name) {
-        if ($rf.Users | Where-Object { $_ -eq $Name }) {
-            $r2 = Invoke-RestMethod -Method Get -Headers $Global:NextcloudAuthHeaders  -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$Name"
-            return $r2.ocs.data
+    if ($UserID) {
+        if ($rf.Users | Where-Object { $_ -eq $UserID }) {
+            $r2 = Invoke-NextcloudApi -Api "ocs/v1.php/cloud/users/$UserID" -Json
+            return $r2
         }
     }
     else {
         $r2 = $rf.Users | ForEach-Object {
-            Invoke-RestMethod -Method Get -Headers $Global:NextcloudAuthHeaders  -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$_"
+            Invoke-NextcloudApi -Api "ocs/v1.php/cloud/users/$_" -Json
         }
 
-        return $r2.ocs.data
+        return $r2
     }
 }
 
@@ -88,16 +135,12 @@ function Set-NextcloudUser {
     }
 
     if ($Enable) {
-        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID/enable"
-        if ($e.ocs.meta.status -eq 'ok') {
-            Write-Host "User: $UserID Enabled Successfuly!"
-        }
+        $e = Invoke-NextcloudApi -Method Put -Api "ocs/v1.php/cloud/users/$UserID/enable"
+        Write-Host "User: $UserID Enabled Successfuly!"
     }
     elseif ($Disable) {
-        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID/disable"
-        if ($e.ocs.meta.status -eq 'ok') {
-            Write-Host "User: $UserID Disabled Successfuly!"
-        }
+        $e = Invoke-NextcloudApi -Method Put -Api "ocs/v1.php/cloud/users/$UserID/disable"
+        Write-Host "User: $UserID Disabled Successfuly!"
     }
 
     if ($Email) {
@@ -105,7 +148,7 @@ function Set-NextcloudUser {
             key   = 'email'
             value = $Email
         }
-        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID" -Body $requestBody -ContentType application/x-www-form-urlencoded
+        $e = Invoke-NextcloudApi -Method Put -Api "ocs/v1.php/cloud/users/$UserID" -Body $requestBody
     }
 
     if ($Password) {
@@ -113,7 +156,7 @@ function Set-NextcloudUser {
             key   = 'password'
             value = $Password
         }
-        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID" -Body $requestBody -ContentType application/x-www-form-urlencoded
+        $e = Invoke-NextcloudApi -Method Put -Api "ocs/v1.php/cloud/users/$UserID" -Body $requestBody
     }
 
     if ($DisplayName) {
@@ -121,7 +164,7 @@ function Set-NextcloudUser {
             key   = 'displayname'
             value = $DisplayName
         }
-        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID" -Body $requestBody -ContentType application/x-www-form-urlencoded
+        $e = Invoke-NextcloudApi -Method Put -Api "ocs/v1.php/cloud/users/$UserID" -Body $requestBody
     }
 
     if ($Quota) {
@@ -129,7 +172,7 @@ function Set-NextcloudUser {
             key   = 'quota'
             value = $Quota
         }
-        $e = Invoke-RestMethod -Method Put -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID" -Body $requestBody -ContentType application/x-www-form-urlencoded
+        $e = Invoke-NextcloudApi -Method Put -Api "ocs/v1.php/cloud/users/$UserID" -Body $requestBody
     }
 }
 
@@ -157,14 +200,8 @@ function Add-NextcloudUser {
         language    = $Language
     }
 
-    $r = Invoke-RestMethod -Method Post -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users" -Body $requestBody
-    if ($r.ocs.meta.status -eq 'ok') {
-        Write-Host "User: $UserID Created Successfuly!"
-    }
-    else {
-        Write-Error "$($r.ocs.meta.message)"
-
-    }
+    $r = Invoke-NextcloudApi -Method Post -Api "ocs/v1.php/cloud/users" -Body $requestBody
+    Write-Host "User: $UserID Created Successfuly!"
 }
 
 function Remove-NextcloudUser {
@@ -175,11 +212,6 @@ function Remove-NextcloudUser {
 
     if ($null -eq $UserID -or $UserID -eq '') { throw 'Please specify user ID. ID cant be empty!' }
 
-    $r = Invoke-RestMethod -Method Delete -Headers $Global:NextcloudAuthHeaders -Uri "$($Global:NextcloudBaseURL)/ocs/v1.php/cloud/users/$UserID"
-    if ($r.ocs.meta.status -eq 'ok') {
-        Write-Host "User: $UserID Deleted Successfuly!"
-    }
-    else {
-        Write-Error "$($r.ocs.meta.message)"
-    }
+    $r = Invoke-NextcloudApi -Method Delete -Api "ocs/v1.php/cloud/users/$UserID"
+    Write-Host "User: $UserID Deleted Successfuly!"
 }
