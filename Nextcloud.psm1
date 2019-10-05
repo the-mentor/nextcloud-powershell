@@ -87,7 +87,7 @@ function Connect-NextcloudServer {
         $Script:NextcloudBaseURL = $NextcloudBaseURL
     }
     else {
-        Write-Error "Failed to Authenticate to Nextcloud Server: $Server. Server returend: $($fail.message.split(',') | select-string statuscode) "
+        Write-Error "Failed to Authenticate to Nextcloud Server: $Server. Server returned: $($fail.message.split(',') | select-string statuscode) "
     }
 }
 
