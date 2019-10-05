@@ -74,7 +74,7 @@ function Connect-NextcloudServer {
 
 
     try {
-        $r = Invoke-RestMethod -Method Get -Headers $Headers -Uri "$NextcloudBaseURL/ocs/v1.php/cloud/users?search=&format=json&limit=1"
+        $r = Invoke-RestMethod -Method Get -Headers $Headers -Uri "$NextcloudBaseURL/ocs/v1.php/cloud/users?search=&format=json&limit=1" -ErrorVariable:fail
     }
     catch {
         Write-Error "Nextcloud Server could not be contacted please check the server URL: $NextcloudBaseURL"
@@ -82,12 +82,12 @@ function Connect-NextcloudServer {
 
 
     if ($r.ocs.meta.status -eq 'ok') {
-        Write-Host "Connected to Nextcloud Server: $Server"
+        Write-Verbose "Connected to Nextcloud Server: $Server"
         $Script:NextcloudAuthHeaders = $Headers
         $Script:NextcloudBaseURL = $NextcloudBaseURL
     }
     else {
-        Write-Host "Failed to Authenticate to Nextcloud Server: $Server"
+        Write-Error "Failed to Authenticate to Nextcloud Server: $Server. Server returned: $($fail.message.split(',') | select-string statuscode) "
     }
 }
 
@@ -136,11 +136,11 @@ function Set-NextcloudUser {
 
     if ($Enable) {
         $e = Invoke-NextcloudApi -Method Put -Api "ocs/v1.php/cloud/users/$UserID/enable"
-        Write-Host "User: $UserID Enabled Successfuly!"
+        Write-Verbose "User: $UserID Enabled Successfuly!"
     }
     elseif ($Disable) {
         $e = Invoke-NextcloudApi -Method Put -Api "ocs/v1.php/cloud/users/$UserID/disable"
-        Write-Host "User: $UserID Disabled Successfuly!"
+        Write-Verbose "User: $UserID Disabled Successfuly!"
     }
 
     if ($Email) {
@@ -201,7 +201,7 @@ function Add-NextcloudUser {
     }
 
     $r = Invoke-NextcloudApi -Method Post -Api "ocs/v1.php/cloud/users" -Body $requestBody
-    Write-Host "User: $UserID Created Successfuly!"
+    Write-Verbose "User: $UserID Created Successfuly!"
 }
 
 function Remove-NextcloudUser {
@@ -213,5 +213,5 @@ function Remove-NextcloudUser {
     if ($null -eq $UserID -or $UserID -eq '') { throw 'Please specify user ID. ID cant be empty!' }
 
     $r = Invoke-NextcloudApi -Method Delete -Api "ocs/v1.php/cloud/users/$UserID"
-    Write-Host "User: $UserID Deleted Successfuly!"
+    Write-Verbose "User: $UserID Deleted Successfuly!"
 }
