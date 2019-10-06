@@ -25,7 +25,7 @@ Describe 'Users' {
         }
     }
     $UserIdAdmin = $Credential.UserName
-    $UserIdTest1 = "{0}-{1}-Test1" -f $UserIdAdmin, $(if ($env:System_JobDisplayName) { $env:System_JobDisplayName } else { 'Local' })
+    $UserIdTest1 = "{0}-{1}-Test1" -f $UserIdAdmin, $(if ($env:SYSTEM_JOBDISPLAYNAME) { $env:SYSTEM_JOBDISPLAYNAME } else { 'Local' })
     It 'Connect-NextcloudServer' {
         Connect-NextcloudServer -Server $Server -Credential $Credential | Should -BeNullOrEmpty
     }
