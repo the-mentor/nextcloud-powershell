@@ -5,26 +5,34 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "PowerShell Launch Current File",
             "type": "PowerShell",
             "request": "launch",
+            "name": "PowerShell Pester Tests",
+            "script": "Import-Module -Name '.\\Nextcloud.psd1' -Force ; Invoke-Pester", // Change to '.\\ModuleName.psd1' if Git name different
+            "args": [""],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "PowerShell Launch Current File",
             "script": "${file}",
             "args": [],
             "cwd": "${file}"
         },
         {
-            "name": "PowerShell Launch Current File in Temporary Console",
             "type": "PowerShell",
             "request": "launch",
+            "name": "PowerShell Launch Current File in Temporary Console",
             "script": "${file}",
             "args": [],
             "cwd": "${file}",
             "createTemporaryIntegratedConsole": true
         },
         {
-            "name": "PowerShell Launch Current File w/Args Prompt",
             "type": "PowerShell",
             "request": "launch",
+            "name": "PowerShell Launch Current File w/Args Prompt",
             "script": "${file}",
             "args": [
                 "${command:SpecifyScriptArgs}"
@@ -32,21 +40,17 @@
             "cwd": "${file}"
         },
         {
-            "name": "PowerShell Attach to Host Process",
-            "type": "PowerShell",
-            "request": "attach"
-        },
-        {
-            "name": "PowerShell Interactive Session",
-            "type": "PowerShell",
-            "request": "launch",
-            "cwd": ""
-        },
-        {
-            "name": "PowerShell Attach Interactive Session Runspace",
             "type": "PowerShell",
             "request": "attach",
-            "processId": "current"
+            "name": "PowerShell Attach to Host Process",
+            "processId": "${command:PickPSHostProcess}",
+            "runspaceId": 1
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "PowerShell Interactive Session",
+            "cwd": ""
         }
     ]
 }
