@@ -5,8 +5,8 @@ param (
     [string]$Server = $NextcloudServer
 )
 if ($env:AGENT_NAME) {
-    $Credential = [Management.Automation.PSCredential]::new("$(VarNextcloudUser)", (ConvertTo-SecureString "$(VarNextcloudPassword)" -AsPlainText -Force))
-    $Server = "$(VarNextcloudServer)"
+    $Credential = [Management.Automation.PSCredential]::new($env:VarNextcloudUser, (ConvertTo-SecureString $env:VarNextcloudPassword -AsPlainText -Force))
+    $Server = $env:VarNextcloudServer
 }
 else {
     if (!$Credential) {

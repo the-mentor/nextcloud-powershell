@@ -23,6 +23,10 @@ jobs:
     - powershell: 'Install-Module -Name Pester -Force -SkipPublisherCheck'
       displayName: 'Update Pester'
     - powershell: './Tests/CI.ps1 -Test'
+      env:
+        VarNextcloudUser: $(VarNextcloudUser)
+        VarNextcloudPassword: $(VarNextcloudPassword)
+        VarNextcloudServer: $(VarNextcloudServer)
       displayName: 'Install and Test'
 
     - task: PublishTestResults@2
@@ -52,6 +56,10 @@ jobs:
     - pwsh: 'Install-Module -Name Pester -Force'
       displayName: 'Update Pester'
     - pwsh: './Tests/CI.ps1 -Test'
+      env:
+        VarNextcloudUser: $(VarNextcloudUser)
+        VarNextcloudPassword: $(VarNextcloudPassword)
+        VarNextcloudServer: $(VarNextcloudServer)
       displayName: 'Install and Test'
 
     - task: PublishTestResults@2
@@ -68,6 +76,10 @@ jobs:
     - powershell: 'Install-Module -Name Pester -Force'
       displayName: 'Update Pester'
     - powershell: './Tests/CI.ps1 -Test'
+      env:
+        VarNextcloudUser: $(VarNextcloudUser)
+        VarNextcloudPassword: $(VarNextcloudPassword)
+        VarNextcloudServer: $(VarNextcloudServer)
       displayName: 'Install and Test'
 
     - task: PublishTestResults@2
@@ -84,6 +96,10 @@ jobs:
     - powershell: 'Install-Module -Name Pester -Force'
       displayName: 'Update Pester'
     - powershell: './Tests/CI.ps1 -Test'
+      env:
+        VarNextcloudUser: $(VarNextcloudUser)
+        VarNextcloudPassword: $(VarNextcloudPassword)
+        VarNextcloudServer: $(VarNextcloudServer)
       displayName: 'Install and Test'
 
     - task: PublishTestResults@2
