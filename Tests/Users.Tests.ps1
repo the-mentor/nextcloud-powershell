@@ -18,33 +18,39 @@ else {
 }
 
 Describe 'Users' {
-    $UserId = $Credential.UserName
+    $UserIdAdmin = $Credential.UserName
+    $UserIdTest1 = "{0}-{1}-Test1" -f $UserIdAdmin, $(if ($env:System_JobDisplayName) { $env:System_JobDisplayName } else { 'Local' })
     It 'Connect-NextcloudServer' {
         Connect-NextcloudServer -Server $Server -Credential $Credential | Should -BeNullOrEmpty
     }
     It 'Get-NextcloudUser' {
-        $User = Get-NextcloudUser -UserID $UserId | Should -BeNullOrEmpty
-        $User.id | Should -Be $UserId
+        $User = Get-NextcloudUser -UserID $UserIdAdmin
+        $User.id | Should -Be $UserIdAdmin
     }
     It 'Add-NextcloudUser' {
-        Remove-NextcloudUser -UserID "$UserId-Test1" -ErrorAction SilentlyContinue
-        Add-NextcloudUser -UserID "$UserId-Test1" -Password New-Guid | Should -BeNullOrEmpty
-        (Get-NextcloudUser -UserID $UserId).id | Should -Be "$UserId-Test1"
+        try {
+            Remove-NextcloudUser -UserID $UserIdTest1
+        }
+        catch {
+            Write-Verbose $_
+        }
+        Add-NextcloudUser -UserID $UserIdTest1 -Password New-Guid | Should -BeNullOrEmpty
+        (Get-NextcloudUser -UserID $UserIdTest1).id | Should -Be $UserIdTest1
 
-        { Add-NextcloudUser -UserID "$UserId-Test1" -Password New-Guid } | Should -Throw -ExpectedMessage 'User already exists'
+        { Add-NextcloudUser -UserID $UserIdTest1 -Password New-Guid } | Should -Throw -ExpectedMessage 'User already exists'
     }
     It 'Get-NextcloudUsers' {
         $Users = Get-NextcloudUser
-        $Users.id | Should -Contain $UserId
-        $Users.id | Should -Contain "$UserId-Test1"
+        $Users.id | Should -Contain $UserIdAdmin
+        $Users.id | Should -Contain $UserIdTest1
     }
     It 'Set-NextcloudUser' {
-        Set-NextcloudUser -UserID "$UserId-Test1" -Email 'me@example.com' | Should -BeNullOrEmpty
-        (Get-NextcloudUser -UserID "$UserId-Test1").email | Should -Be 'me@example.com'
+        Set-NextcloudUser -UserID $UserIdTest1 -Email 'me@example.com' | Should -BeNullOrEmpty
+        (Get-NextcloudUser -UserID $UserIdTest1).email | Should -Be 'me@example.com'
     }
     It 'Remove-NextcloudUser' {
-        Remove-NextcloudUser -UserID "$UserId-Test1" | Should -BeNullOrEmpty
-        { Remove-NextcloudUser -UserID "$UserId-Test1" } | Should -Throw -ExpectedMessage '101'
-        Get-NextcloudUser -UserID "$UserId-Test1" | Should -BeNullOrEmpty
+        Remove-NextcloudUser -UserID $UserIdTest1 | Should -BeNullOrEmpty
+        { Remove-NextcloudUser -UserID $UserIdTest1 } | Should -Throw -ExpectedMessage '101'
+        Get-NextcloudUser -UserID $UserIdTest1 | Should -BeNullOrEmpty
     }
 }
