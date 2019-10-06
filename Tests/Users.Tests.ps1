@@ -1,4 +1,7 @@
 #Requires -Modules Pester
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "Global:NextcloudCredential", Justification = 'Preserve for next run/test')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidGlobalVars", "Global:NextcloudServer", Justification = 'Preserve for next run/test')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", "ConvertTo-SecureString", Justification = "Azure pipelines can't save PSCredential")]
 [CmdletBinding()]
 param (
     [PSCredential]$Credential = $NextcloudCredential,
