@@ -5,8 +5,8 @@ param (
     [string]$Server = $NextcloudServer
 )
 if ($env:AGENT_NAME) {
-    $Credential = [Management.Automation.PSCredential]::new('$(NextcloudUser)', (ConvertTo-SecureString '$(NextcloudPassword)' -AsPlainText -Force))
-    $Server = '$(NextcloudServer)'
+    $Credential = [Management.Automation.PSCredential]::new("$(NextcloudUser)", (ConvertTo-SecureString "$(NextcloudPassword)" -AsPlainText -Force))
+    $Server = "$(NextcloudServer)"
 }
 else {
     if (!$Credential) {
@@ -18,6 +18,12 @@ else {
 }
 
 Describe 'Users' {
+    BeforeEach {
+        $FailedCount = InModuleScope -ModuleName Pester { $Pester.FailedCount }
+        if ($FailedCount -gt 0) {
+            Set-ItResult -Skipped -Because 'Previous test failed'
+        }
+    }
     $UserIdAdmin = $Credential.UserName
     $UserIdTest1 = "{0}-{1}-Test1" -f $UserIdAdmin, $(if ($env:System_JobDisplayName) { $env:System_JobDisplayName } else { 'Local' })
     It 'Connect-NextcloudServer' {
